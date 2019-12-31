@@ -1,10 +1,48 @@
+const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
 
 const Director = require("../models/Director");
 
 router.get("/", (req, res, next) => {
-  const promise = Director.find({});
+  const promise = Director.aggregate([
+    {
+      $lookup: {
+        from: "movies",
+        localField: "_id",
+        foreignField: "director_id",
+        as: "movies"
+      }
+    },
+    {
+      $unwind: {
+        path: "$movies",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+        $group:{
+            _id:{
+                _id:'$_id',
+                name:'$name',
+                surname:'$surname',
+                bio:'$bio'
+            },
+            movies:{
+                $push:'$movies'
+            }
+        }
+    },
+    {
+        $project:{
+            _id:'$_id._id',
+            name:'$_id.name',
+            surname:'$_id.surname',
+            bio:'$_id.bio',
+            movies:'$movies'
+        }
+    }
+  ]);
 
   promise
     .then(data => {
@@ -16,7 +54,49 @@ router.get("/", (req, res, next) => {
 });
 
 router.get("/:director_id", (req, res, next) => {
-  const promise = Director.findById(req.params.director_id);
+    const promise = Director.aggregate([
+        {
+            $match:{
+                '_id':mongoose.Types.ObjectId(req.params.director_id)
+            }
+        },
+        {
+          $lookup: {
+            from: "movies",
+            localField: "_id",
+            foreignField: "director_id",
+            as: "movies"
+          }
+        },
+        {
+          $unwind: {
+            path: "$movies",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+            $group:{
+                _id:{
+                    _id:'$_id',
+                    name:'$name',
+                    surname:'$surname',
+                    bio:'$bio'
+                },
+                movies:{
+                    $push:'$movies'
+                }
+            }
+        },
+        {
+            $project:{
+                _id:'$_id._id',
+                name:'$_id.name',
+                surname:'$_id.surname',
+                bio:'$_id.bio',
+                movies:'$movies'
+            }
+        }
+      ]);
 
   promise
     .then(data => {
