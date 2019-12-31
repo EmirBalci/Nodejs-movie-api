@@ -11,9 +11,9 @@ const MovieSchema = new Schema({
   year: Number,
   imdb: Number,
   director_id: Schema.Types.ObjectId,
-  date:{
-      type:Date,
-      default:Date.now
+  date: {
+    type: Date,
+    default: Date.now
   }
 });
 
